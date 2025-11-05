@@ -1,4 +1,13 @@
-## 🧾 Requisitos Funcionais – Sistema de Correção de Provas
+## Sistema de Correção de Provas
+
+## Running the code
+
+  Run `npm i` to install the dependencies.
+
+  Run `npm run dev` to start the development server.
+  
+ 
+## Requisitos Funcionais
 
 Este documento descreve os **12 requisitos funcionais** do MVP do sistema de correção de provas, ordenados do mais simples ao mais complexo.
 
