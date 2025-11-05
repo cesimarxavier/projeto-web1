@@ -87,3 +87,127 @@ O sistema deve permitir o registro manual das respostas de cada aluno, apresenta
 **Critério de aceite:** o sistema deve validar automaticamente o preenchimento completo antes de salvar.
 
 ---
+
+## Tecnologias Utilizadas no Sistema de Correção de Provas
+
+### Tecnologias Core
+
+**React 18+**  
+Framework JavaScript para construção de interfaces de usuário. Utilizamos:  
+- **Hooks** para gerenciamento de estado  
+- **Componentes** funcionais para toda a aplicação  
+- *Composition* de componentes para criar interfaces modulares e reutilizáveis
+
+**TypeScript**  
+**Superset de JavaScript** que adiciona tipagem estática:  
+- Interfaces para definir estruturas de dados (Aluno, Turma, Prova, etc.)  
+- Type safety prevenindo erros em tempo de desenvolvimento  
+- Autocompletar aprimorado para desenvolvedores  
+- Tipos personalizados como `Page`, `Prova`, `Resultado`
+
+**Tailwind CSS v4.0**  
+Framework utilitário-first para estilização:  
+- Classes utilitárias (`flex`, `grid`, `p-4`, `rounded-lg`)  
+- Design responsivo com breakpoints (`sm:`, `md:`, `lg:`)  
+- Suporte a modo escuro (dark mode) com variáveis CSS  
+- Customização através de `globals.css` com tokens de design
+
+---
+
+### Biblioteca de Componentes
+
+**shadcn/ui**  
+Coleção de componentes React reutilizáveis e acessíveis, utilizada no sistema:  
+- Componentes de Layout: `Card`, `Tabs`, `Separator`, `ScrollArea`  
+- Componentes de Formulário: `Input`, `Select`, `Label`, `Button`, `Checkbox`, `Textarea`  
+- Componentes de Feedback: `Alert`, `Badge`, `Progress`, `Skeleton`  
+- Componentes de Navegação: `Dialog` (modais), `Sheet` (sidebar mobile), `Table`
+
+Referência: [shadcn/ui – Build your component library](https://v3.shadcn.com/) :contentReference[oaicite:1]{index=1}
+
+---
+
+### Bibliotecas de Gráficos
+
+**Recharts**  
+Biblioteca de gráficos React baseada em D3:  
+- `BarChart` – gráficos de barras (média por turma, acerto por questão)  
+- `PieChart` – gráfico de pizza (distribuição de notas)  
+- `ResponsiveContainer` – container responsivo para gráficos  
+- `CartesianGrid`, `XAxis`, `YAxis`, `Tooltip`, `Legend` – componentes auxiliares do gráfico  
+
+Referências: [Recharts official site](https://recharts.org/) :contentReference[oaicite:3]{index=3}
+
+---
+
+### Biblioteca de Ícones
+
+**Lucide React**  
+Biblioteca de ícones SVG moderna e leve. Utilizamos ícones para:  
+- Navegação: `LayoutDashboard`, `Users`, `GraduationCap`, `UserCog`, `FileText`, `BarChart3`  
+- Ações: `Plus`, `Pencil`, `Trash2`, `Upload`, `Download`, `RefreshCw`  
+- Status: `CheckCircle`, `XCircle`, `AlertCircle`, `Trophy`, `Award`  
+- Outros: `Menu`, `LogOut`, `FileCheck`, `TrendingUp`, `Target`
+
+---
+
+### Arquitetura e Organização
+
+**Estrutura de Pastas**
+/components
+/ui – Componentes reutilizáveis (shadcn/ui)
+/pages – Páginas da aplicação
+/figma – Componentes protegidos do sistema
+/styles – Estilos globais e design tokens
+
+
+**Padrão de Componentes**
+- Page Components – cada página = um componente  
+- Composition Pattern – combinações de componentes pequenos para compor interfaces  
+- Props Drilling – passagem de props quando necessário  
+- Estado local – gerenciado com `useState`
+
+---
+
+### Design System
+
+**Tokens CSS (globals.css)**
+
+```
+--primary      – Cor primária (azul)  
+--secondary    – Cor secundária  
+--success      – Verde (acertos)  
+--destructive  – Vermelho (erros)  
+--warning      – Amarelo (avisos)  
+--info         – Azul informativo  
+```
+
+
+**Manipulação de Dados**
+
+```
+
+// Arrays de objetos
+const alunos: Aluno[] = [...]
+
+// Records/Maps para lookup rápido
+const respostas: Record<number, string[]> = {}
+
+// Funções de transformação
+const calcularResultados = () => { ... }
+
+```
+
+**Responsividade**
+
+```
+// Grid responsivo
+grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4
+
+// Flex condicional
+flex-col sm:flex-row
+
+// Visibilidade condicional
+hidden md:block
+```
+
