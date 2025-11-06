@@ -2,7 +2,7 @@ import { useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileDown, FileText, Trophy, TrendingUp, Target, Award } from "lucide-react";
+import { FileDown, FileText, Trophy, TrendingUp, Target, BarChart3, Users, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   ChartContainer,
@@ -166,40 +166,49 @@ export function RelatoriosPage() {
   }, [allRespostasComNotas, alunos, getTurmaName]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-8">
       {/* Page Header */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1>Relatórios e Análises</h1>
-            <p className="text-muted-foreground">
-              Visualize o desempenho geral e exporte dados
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold tracking-tight">Relatórios e Análises</h1>
+            <p className="text-muted-foreground text-lg">
+              Visualize o desempenho geral e exporte dados detalhados
             </p>
           </div>
 
           {/* Botões de Exportação */}
           <div className="flex gap-3">
-            <Button variant="outline">
-              <FileText className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="lg" className="gap-2">
+              <FileText className="w-4 h-4" />
               Exportar PDF
             </Button>
-            <Button variant="outline">
-              <FileDown className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="lg" className="gap-2">
+              <FileDown className="w-4 h-4" />
               Exportar CSV
             </Button>
           </div>
         </div>
 
         {/* Filtros */}
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="border-2 shadow-sm bg-card">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              Filtros de Análise
+            </CardTitle>
+            <CardDescription>
+              Filtre os dados por período, turma ou disciplina
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">
+                <label className="text-sm font-semibold">
                   Período
                 </label>
                 <Select defaultValue="all">
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Selecione o período" />
                   </SelectTrigger>
                   <SelectContent>
@@ -212,11 +221,11 @@ export function RelatoriosPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">
+                <label className="text-sm font-semibold">
                   Turma
                 </label>
                 <Select defaultValue="all">
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Selecione a turma" />
                   </SelectTrigger>
                   <SelectContent>
@@ -230,11 +239,11 @@ export function RelatoriosPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">
+                <label className="text-sm font-semibold">
                   Disciplina
                 </label>
                 <Select defaultValue="all">
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Selecione a disciplina" />
                   </SelectTrigger>
                   <SelectContent>
@@ -253,57 +262,61 @@ export function RelatoriosPage() {
 
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="border-2 shadow-lg hover:shadow-xl transition-shadow bg-card">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-primary" />
+            <div className="flex items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Média Geral</p>
+                <p className="text-4xl font-bold text-primary">{totals.mediaGeral.toFixed(1)}</p>
+                <p className="text-xs text-muted-foreground">Escala de 0 a 10</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Média Geral</p>
-                <p className="text-3xl">{totals.mediaGeral.toFixed(1)}</p>
+              <div className="w-14 h-14 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center shadow-md">
+                <TrendingUp className="w-7 h-7 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2 shadow-lg hover:shadow-xl transition-shadow bg-card">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-success/10 flex items-center justify-center">
-                <Target className="w-6 h-6 text-success" />
+            <div className="flex items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Taxa de Aprovação</p>
+                <p className="text-4xl font-bold text-success">{taxaAprovacao.toFixed(0)}%</p>
+                <p className="text-xs text-muted-foreground">Notas ≥ 6.0</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Taxa de Aprovação</p>
-                <p className="text-3xl">{taxaAprovacao.toFixed(0)}%</p>
+              <div className="w-14 h-14 rounded-xl bg-success/10 dark:bg-success/20 flex items-center justify-center shadow-md">
+                <Target className="w-7 h-7 text-success" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2 shadow-lg hover:shadow-xl transition-shadow bg-card">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-info/10 flex items-center justify-center">
-                <FileText className="w-6 h-6 text-info" />
+            <div className="flex items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Provas Aplicadas</p>
+                <p className="text-4xl font-bold text-info">{totals.totalProvas}</p>
+                <p className="text-xs text-muted-foreground">Total cadastrado</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Provas Aplicadas</p>
-                <p className="text-3xl">{totals.totalProvas}</p>
+              <div className="w-14 h-14 rounded-xl bg-info/10 dark:bg-info/20 flex items-center justify-center shadow-md">
+                <FileText className="w-7 h-7 text-info" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-2 shadow-lg hover:shadow-xl transition-shadow bg-card">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-warning/10 flex items-center justify-center">
-                <Award className="w-6 h-6 text-warning" />
+            <div className="flex items-start justify-between">
+              <div className="space-y-2 flex-1">
+                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Alunos Avaliados</p>
+                <p className="text-4xl font-bold text-warning">{alunosAvaliados}</p>
+                <p className="text-xs text-muted-foreground">Com notas registradas</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Alunos Avaliados</p>
-                <p className="text-3xl">{alunosAvaliados}</p>
+              <div className="w-14 h-14 rounded-xl bg-warning/10 dark:bg-warning/20 flex items-center justify-center shadow-md">
+                <Users className="w-7 h-7 text-warning" />
               </div>
             </div>
           </CardContent>
@@ -313,35 +326,45 @@ export function RelatoriosPage() {
       {/* Gráficos - Primeira Linha */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Média por Turma */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Média por Turma</CardTitle>
+        <Card className="border-2 shadow-md bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              Média por Turma
+            </CardTitle>
             <CardDescription>
               Desempenho médio de cada turma
             </CardDescription>
           </CardHeader>
           <CardContent>
             {mediaPorTurma.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Nenhum dado disponível
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <BarChart3 className="w-12 h-12 text-muted-foreground/30 dark:text-muted-foreground/20 mb-4" />
+                <p className="text-muted-foreground font-medium">Nenhum dado disponível</p>
+                <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground/60 mt-1">Cadastre provas e turmas para ver os dados</p>
+              </div>
             ) : (
-              <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <ChartContainer config={chartConfig} className="h-[320px] w-full">
                 <BarChart data={mediaPorTurma}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted opacity-50" />
                   <XAxis
                     dataKey="turma"
-                    className="text-muted-foreground"
+                    className="text-muted-foreground text-sm"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
                   />
                   <YAxis
                     domain={[0, 10]}
-                    className="text-muted-foreground"
+                    className="text-muted-foreground text-sm"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
                   />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip
+                    content={<ChartTooltipContent className="rounded-lg border shadow-lg bg-card" />}
+                  />
                   <Bar
                     dataKey="media"
                     fill="hsl(var(--primary))"
                     radius={[8, 8, 0, 0]}
+                    className="opacity-90 hover:opacity-100 transition-opacity"
                   />
                 </BarChart>
               </ChartContainer>
@@ -349,37 +372,50 @@ export function RelatoriosPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribuição de Notas</CardTitle>
+        <Card className="border-2 shadow-md bg-card">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-success" />
+              Distribuição de Notas
+            </CardTitle>
             <CardDescription>
               Quantidade de alunos por faixa de nota
             </CardDescription>
           </CardHeader>
           <CardContent>
             {distribuicaoNotas.every(d => d.quantidade === 0) ? (
-              <p className="text-center text-muted-foreground py-8">
-                Nenhum dado disponível
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Sparkles className="w-12 h-12 text-muted-foreground/30 dark:text-muted-foreground/20 mb-4" />
+                <p className="text-muted-foreground font-medium">Nenhum dado disponível</p>
+                <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground/60 mt-1">Cadastre provas e turmas para ver os dados</p>
+              </div>
             ) : (
-              <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <ChartContainer config={chartConfig} className="h-[320px] w-full">
                 <PieChart>
                   <Pie
                     data={distribuicaoNotas}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ faixa, quantidade }) => `${faixa}: ${quantidade}`}
-                    outerRadius={100}
+                    label={({ faixa, quantidade, percent }) =>
+                      `${faixa}: ${quantidade} (${(percent * 100).toFixed(0)}%)`
+                    }
+                    outerRadius={110}
                     fill="#8884d8"
                     dataKey="quantidade"
+                    className="cursor-pointer"
                   >
                     {distribuicaoNotas.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Legend />
+                  <ChartTooltip
+                    content={<ChartTooltipContent className="rounded-lg border shadow-lg bg-card" />}
+                  />
+                  <Legend
+                    wrapperStyle={{ paddingTop: '20px', color: 'hsl(var(--muted-foreground))' }}
+                    iconType="circle"
+                  />
                 </PieChart>
               </ChartContainer>
             )}
@@ -388,36 +424,48 @@ export function RelatoriosPage() {
       </div>
 
       {/* Gráfico - Acerto por Questão */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Percentual de Acerto por Questão</CardTitle>
+      <Card className="border-2 shadow-md bg-card">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <Target className="w-5 h-5 text-info" />
+            Percentual de Acerto por Questão
+          </CardTitle>
           <CardDescription>
             Análise de dificuldade de cada questão
           </CardDescription>
         </CardHeader>
         <CardContent>
           {acertoPorQuestao.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              Nenhum dado disponível
-            </p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Target className="w-12 h-12 text-muted-foreground/30 dark:text-muted-foreground/20 mb-4" />
+              <p className="text-muted-foreground font-medium">Nenhum dado disponível</p>
+              <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground/60 mt-1">Cadastre gabaritos e respostas para ver os dados</p>
+            </div>
           ) : (
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <ChartContainer config={chartConfig} className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={acertoPorQuestao}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted opacity-50" />
                   <XAxis
                     dataKey="questao"
-                    className="text-muted-foreground"
+                    className="text-muted-foreground text-sm"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
                   />
                   <YAxis
                     domain={[0, 100]}
-                    className="text-muted-foreground"
+                    className="text-muted-foreground text-sm"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    label={{ value: 'Percentual (%)', angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))' }}
                   />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip
+                    content={<ChartTooltipContent className="rounded-lg border shadow-lg bg-card" />}
+                    formatter={(value: number) => [`${value.toFixed(1)}%`, 'Acerto']}
+                  />
                   <Bar
                     dataKey="percentual"
                     fill="hsl(var(--success))"
                     radius={[8, 8, 0, 0]}
+                    className="opacity-90 hover:opacity-100 transition-opacity"
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -427,55 +475,74 @@ export function RelatoriosPage() {
       </Card>
 
       {/* Ranking de Alunos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="border-2 shadow-md bg-card">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl flex items-center gap-2">
             <Trophy className="w-5 h-5 text-warning" />
             Ranking dos Melhores Alunos
           </CardTitle>
           <CardDescription>
-            Top 8 alunos com melhor desempenho
+            Top 8 alunos com melhor desempenho geral
           </CardDescription>
         </CardHeader>
         <CardContent>
           {rankingAlunos.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
-              Nenhum dado disponível
-            </p>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Trophy className="w-12 h-12 text-muted-foreground/30 dark:text-muted-foreground/20 mb-4" />
+              <p className="text-muted-foreground font-medium">Nenhum dado disponível</p>
+              <p className="text-sm text-muted-foreground/70 dark:text-muted-foreground/60 mt-1">Cadastre provas e respostas para ver o ranking</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {rankingAlunos.map((aluno) => (
                 <div
                   key={aluno.alunoId}
-                  className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                  className={`flex items-center gap-4 p-5 rounded-xl border-2 transition-all ${
+                    aluno.posicao === 1
+                      ? "bg-warning/10 dark:bg-warning/20 border-warning/30 dark:border-warning/40 shadow-md"
+                      : aluno.posicao === 2
+                      ? "bg-muted/50 dark:bg-muted/30 border-muted-foreground/20 dark:border-muted-foreground/30"
+                      : aluno.posicao === 3
+                      ? "bg-warning/5 dark:bg-warning/10 border-warning/20 dark:border-warning/30"
+                      : "border-border hover:bg-accent/50 dark:hover:bg-accent/30 hover:border-accent-foreground/20"
+                  }`}
                 >
                   {/* Posição */}
                   <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    className={`w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg shadow-md ${
                       aluno.posicao === 1
-                        ? "bg-warning text-warning-foreground"
+                        ? "bg-warning dark:bg-warning/90 text-warning-foreground ring-2 ring-warning/50 dark:ring-warning/40"
                         : aluno.posicao === 2
-                        ? "bg-muted-foreground/20"
+                        ? "bg-muted-foreground/20 dark:bg-muted-foreground/30 text-foreground"
                         : aluno.posicao === 3
-                        ? "bg-warning/30"
-                        : "bg-muted"
+                        ? "bg-warning/30 dark:bg-warning/40 text-warning-foreground"
+                        : "bg-muted dark:bg-muted/80 text-muted-foreground"
                     }`}
                   >
-                    <p className="text-xl">{aluno.posicao}º</p>
+                    {aluno.posicao === 1 && <Trophy className="w-6 h-6" />}
+                    {aluno.posicao !== 1 && <span>{aluno.posicao}º</span>}
                   </div>
 
                   {/* Info do Aluno */}
-                  <div className="flex-1">
-                    <p>{aluno.nome}</p>
-                    <p className="text-muted-foreground">
-                      {aluno.turma}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-lg truncate">{aluno.nome}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {aluno.turma}
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Nota e Percentual */}
-                  <div className="text-right">
-                    <p className="text-2xl">{aluno.nota.toFixed(1)}</p>
-                    <Badge variant="default">
+                  <div className="text-right space-y-2">
+                    <div>
+                      <p className="text-3xl font-bold text-primary">{aluno.nota.toFixed(1)}</p>
+                      <p className="text-xs text-muted-foreground">Nota média</p>
+                    </div>
+                    <Badge
+                      variant={aluno.nota >= 6 ? "default" : "secondary"}
+                      className="text-sm px-3 py-1"
+                    >
                       {aluno.percentual.toFixed(0)}%
                     </Badge>
                   </div>
@@ -487,22 +554,25 @@ export function RelatoriosPage() {
       </Card>
 
       {/* Rodapé de Exportação */}
-      <Card className="bg-muted/50">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div>
-              <p>Exportar dados completos</p>
-              <p className="text-muted-foreground">
-                Gere relatórios detalhados em PDF ou planilhas CSV
+      <Card className="bg-primary/5 dark:bg-primary/10 border-2 border-primary/20 dark:border-primary/30 shadow-lg">
+        <CardContent className="pt-8 pb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="space-y-2 text-center sm:text-left">
+              <h3 className="text-xl font-bold flex items-center gap-2 justify-center sm:justify-start">
+                <FileText className="w-5 h-5 text-primary" />
+                Exportar dados completos
+              </h3>
+              <p className="text-muted-foreground max-w-md">
+                Gere relatórios detalhados em PDF ou planilhas CSV com todos os dados de desempenho
               </p>
             </div>
-            <div className="flex gap-3">
-              <Button>
-                <FileText className="w-4 h-4 mr-2" />
+            <div className="flex gap-3 shrink-0">
+              <Button size="lg" className="gap-2 shadow-md">
+                <FileText className="w-4 h-4" />
                 Gerar PDF Completo
               </Button>
-              <Button variant="outline">
-                <FileDown className="w-4 h-4 mr-2" />
+              <Button variant="outline" size="lg" className="gap-2 border-2">
+                <FileDown className="w-4 h-4" />
                 Baixar CSV
               </Button>
             </div>
