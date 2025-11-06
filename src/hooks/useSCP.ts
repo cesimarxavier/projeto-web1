@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DB, KEY_DB } from "@/services/db";
-import type { Turma, Aluno, Prova, Alt, AltGabarito } from "@/domain/models";
+import type { Turma, Aluno, Prova, Professor, Alt, AltGabarito } from "@/domain/models";
 
 export function useSCP() {
   const [turmas, setTurmas] = useState<Turma[]>(() => DB.listTurmas());
   const [alunos, setAlunos] = useState<Aluno[]>(() => DB.listAlunos());
   const [provas, setProvas] = useState<Prova[]>(() => DB.listProvas());
+  const [professores, setProfessores] = useState<Professor[]>(() => DB.listProfessores());
 
   const refresh = useCallback(() => {
     setTurmas(DB.listTurmas());
     setAlunos(DB.listAlunos());
     setProvas(DB.listProvas());
+    setProfessores(DB.listProfessores());
   }, []);
 
   // Listen for custom scp:changed event (same tab)
@@ -43,21 +45,32 @@ export function useSCP() {
   const updateProva = useCallback((id: string, p: Partial<Prova>) => { DB.updateProva(id, p); refresh(); }, [refresh]);
   const deleteProva = useCallback((id: string) => { DB.deleteProva(id); refresh(); }, [refresh]);
 
+  const createProfessor = useCallback((d: Omit<Professor,'id'|'criadoEm'>) => { DB.createProfessor(d); refresh(); }, [refresh]);
+  const updateProfessor = useCallback((id: string, p: Partial<Professor>) => { DB.updateProfessor(id, p); refresh(); }, [refresh]);
+  const deleteProfessor = useCallback((id: string) => { DB.deleteProfessor(id); refresh(); }, [refresh]);
+
   const saveGabarito = useCallback((provaId: string, resp: AltGabarito[]) => { DB.createOrReplaceGabarito(provaId, resp); refresh(); }, [refresh]);
   const saveRespostas = useCallback((provaId: string, alunoId: string, resp: Alt[]) => { DB.createOrUpdateResposta({ provaId, alunoId, respostas: resp }); refresh(); }, [refresh]);
 
   const totals = useMemo(() => DB.getTotals(), [turmas, alunos, provas]);
 
+  const listTurmas = useCallback(() => DB.listTurmas(), []);
+  const listAlunos = useCallback((turmaId?: string) => DB.listAlunos(turmaId), []);
+  const listProvas = useCallback((turmaId?: string) => DB.listProvas(turmaId), []);
+  const listRespostasByProva = useCallback((provaId: string) => DB.listRespostasByProva(provaId), []);
+  const getGabaritoByProva = useCallback((provaId: string) => DB.getGabaritoByProva(provaId), []);
+
   return {
-    turmas, alunos, provas, totals,
-    listTurmas: () => DB.listTurmas(),
-    listAlunos: (turmaId?: string) => DB.listAlunos(turmaId),
-    listProvas: (turmaId?: string) => DB.listProvas(turmaId),
-    listRespostasByProva: (provaId: string) => DB.listRespostasByProva(provaId),
-    getGabaritoByProva: (provaId: string) => DB.getGabaritoByProva(provaId),
+    turmas, alunos, provas, professores, totals,
+    listTurmas,
+    listAlunos,
+    listProvas,
+    listRespostasByProva,
+    getGabaritoByProva,
     createTurma, updateTurma, deleteTurma,
     createAluno, updateAluno, deleteAluno,
     createProva, updateProva, deleteProva,
+    createProfessor, updateProfessor, deleteProfessor,
     saveGabarito, saveRespostas,
     refresh,
   };

@@ -1,6 +1,6 @@
-import { SCPDB, Turma, Aluno, Prova, Gabarito, RespostaAluno, ID, Alt, AltGabarito } from "../domain/models";
+import type { SCPDB, Turma, Aluno, Prova, Gabarito, RespostaAluno, Professor, ID, Alt, AltGabarito } from "@/domain/models";
 
-const KEY = "scp_db";
+export const KEY_DB = "scp_db";
 
 function nowISO() { return new Date().toISOString(); }
 function uid(prefix = "id"): ID {
@@ -9,15 +9,21 @@ function uid(prefix = "id"): ID {
 }
 
 function readDB(): SCPDB {
-  const raw = localStorage.getItem(KEY);
+  const raw = localStorage.getItem(KEY_DB);
   if (!raw) {
-    const empty: SCPDB = { turmas: [], alunos: [], provas: [], gabaritos: [], respostas: [], _meta: { version: 1 } };
-    localStorage.setItem(KEY, JSON.stringify(empty)); try { window.dispatchEvent(new Event('scp:changed')); } catch{}
+    const empty: SCPDB = { turmas: [], alunos: [], provas: [], gabaritos: [], respostas: [], professores: [], _meta: { version: 1 } };
+    localStorage.setItem(KEY_DB, JSON.stringify(empty)); try { window.dispatchEvent(new Event('scp:changed')); } catch{}
     return empty;
   }
-  return JSON.parse(raw) as SCPDB;
+  const db = JSON.parse(raw) as SCPDB;
+  // Migrate old DBs that don't have professores array
+  if (!db.professores) {
+    db.professores = [];
+    writeDB(db);
+  }
+  return db;
 }
-function writeDB(db: any) { localStorage.setItem(KEY, JSON.stringify(db)); try { window.dispatchEvent(new Event('scp:changed')); } catch{} }
+function writeDB(db: any) { localStorage.setItem(KEY_DB, JSON.stringify(db)); try { window.dispatchEvent(new Event('scp:changed')); } catch{} }
 
 export function calcNota(gabarito: AltGabarito[], respostas: Alt[]): number {
   let acertos = 0;
@@ -30,7 +36,7 @@ export function calcNota(gabarito: AltGabarito[], respostas: Alt[]): number {
 }
 
 export const DB = {
-  reset() { localStorage.removeItem(KEY); },
+  reset() { localStorage.removeItem(KEY_DB); },
 
   listTurmas(): Turma[] { return readDB().turmas; },
   createTurma(data: Omit<Turma, "id" | "criadaEm">): Turma {
@@ -138,6 +144,23 @@ export const DB = {
     return db.respostas.find(r => r.provaId === input.provaId && r.alunoId === input.alunoId)!;
   },
 
+  listProfessores(): Professor[] { return readDB().professores; },
+  createProfessor(data: Omit<Professor, "id" | "criadoEm">): Professor {
+    const db = readDB();
+    const professor: Professor = { id: uid("professor"), criadoEm: nowISO(), ...data };
+    db.professores.push(professor); writeDB(db); return professor;
+  },
+  updateProfessor(id: ID, patch: Partial<Omit<Professor, "id" | "criadoEm">>): Professor {
+    const db = readDB(); const i = db.professores.findIndex(p => p.id === id);
+    if (i < 0) throw new Error("Professor não encontrado");
+    db.professores[i] = { ...db.professores[i], ...patch }; writeDB(db); return db.professores[i];
+  },
+  deleteProfessor(id: ID): void {
+    const db = readDB();
+    db.professores = db.professores.filter(p => p.id !== id);
+    writeDB(db);
+  },
+
   getTotals() {
     const db = readDB();
     const totalTurmas = db.turmas.length;
@@ -157,4 +180,3 @@ export const DB = {
 
 ;(window as any).__scp = DB;
 console.log('[SCP] window.__scp disponível');
-

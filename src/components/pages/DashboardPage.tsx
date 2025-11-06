@@ -1,8 +1,46 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FileText, TrendingUp, Calendar, CheckCircle, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { useSCP } from "@/hooks/useSCP";
 
 export function DashboardPage() {
+  const { provas, turmas, totals } = useSCP();
+
+  const getTurmaName = (turmaId: string) => {
+    return turmas.find(t => t.id === turmaId)?.nome || turmaId;
+  };
+
+  const recentProvas = useMemo(() => {
+    return [...provas]
+      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+      .slice(0, 3);
+  }, [provas]);
+
+  const upcomingProvas = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return [...provas]
+      .filter(p => {
+        const provaDate = new Date(p.data);
+        provaDate.setHours(0, 0, 0, 0);
+        return provaDate >= today;
+      })
+      .sort((a, b) => new Date(a.data).getTime() - new Date(b.data).getTime())
+      .slice(0, 3);
+  }, [provas]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("pt-BR");
+  };
+
+  const formatCalendarDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = date.getDate();
+    const month = date.toLocaleDateString("pt-BR", { month: "short" }).toUpperCase();
+    return { day, month };
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -23,7 +61,7 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              <p className="text-4xl">12</p>
+              <p className="text-4xl">{totals.totalTurmas}</p>
               <p className="text-muted-foreground">
                 turmas ativas no sistema
               </p>
@@ -39,9 +77,9 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              <p className="text-4xl">48</p>
+              <p className="text-4xl">{totals.totalProvas}</p>
               <p className="text-muted-foreground">
-                provas aplicadas este mês
+                provas cadastradas no sistema
               </p>
             </div>
           </CardContent>
@@ -55,7 +93,7 @@ export function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-1">
-              <p className="text-4xl">7.5</p>
+              <p className="text-4xl">{totals.mediaGeral.toFixed(1)}</p>
               <p className="text-muted-foreground">
                 média de todas as turmas
               </p>
@@ -73,41 +111,34 @@ export function DashboardPage() {
             <CardDescription>Últimas provas cadastradas no sistema</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-success" />
-              </div>
-              <div className="flex-1">
-                <p>Prova de Matemática - Turma A</p>
-                <p className="text-muted-foreground">
-                  Aplicada em 28/10/2025
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-success" />
-              </div>
-              <div className="flex-1">
-                <p>Prova de Português - Turma B</p>
-                <p className="text-muted-foreground">
-                  Aplicada em 25/10/2025
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-warning" />
-              </div>
-              <div className="flex-1">
-                <p>Prova de História - Turma C</p>
-                <p className="text-muted-foreground">
-                  Pendente de correção
-                </p>
-              </div>
-            </div>
+            {recentProvas.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                Nenhuma prova cadastrada
+              </p>
+            ) : (
+              recentProvas.map((prova) => (
+                <div key={prova.id} className="flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    prova.corrigida ? "bg-success/10" : "bg-warning/10"
+                  }`}>
+                    {prova.corrigida ? (
+                      <CheckCircle className="w-5 h-5 text-success" />
+                    ) : (
+                      <Clock className="w-5 h-5 text-warning" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p>{prova.titulo} - {getTurmaName(prova.turmaId)}</p>
+                    <p className="text-muted-foreground">
+                      {prova.corrigida
+                        ? `Aplicada em ${formatDate(prova.data)}`
+                        : "Pendente de correção"
+                      }
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -115,40 +146,29 @@ export function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>Desempenho por Turma</CardTitle>
-            <CardDescription>Média de notas das turmas principais</CardDescription>
+            <CardDescription>Média de notas das turmas</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p>Turma A - 2025</p>
-                <p className="text-muted-foreground">8.2</p>
-              </div>
-              <Progress value={82} className="h-2" />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p>Turma B - 2025</p>
-                <p className="text-muted-foreground">7.5</p>
-              </div>
-              <Progress value={75} className="h-2" />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p>Turma C - 2025</p>
-                <p className="text-muted-foreground">6.8</p>
-              </div>
-              <Progress value={68} className="h-2" />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <p>Turma D - 2025</p>
-                <p className="text-muted-foreground">7.9</p>
-              </div>
-              <Progress value={79} className="h-2" />
-            </div>
+            {totals.mediasPorTurma.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                Nenhuma média disponível
+              </p>
+            ) : (
+              totals.mediasPorTurma.map((item) => {
+                const turma = turmas.find(t => t.id === item.turmaId);
+                if (!turma) return null;
+                const progressValue = (item.media / 10) * 100;
+                return (
+                  <div key={item.turmaId} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p>{turma.nome} - {turma.ano}</p>
+                      <p className="text-muted-foreground">{item.media.toFixed(1)}</p>
+                    </div>
+                    <Progress value={progressValue} className="h-2" />
+                  </div>
+                );
+              })
+            )}
           </CardContent>
         </Card>
       </div>
@@ -160,43 +180,32 @@ export function DashboardPage() {
           <CardDescription>Calendário de provas para os próximos dias</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="flex gap-4 p-4 rounded-lg border border-border">
-              <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-lg">
-                <Calendar className="w-5 h-5 text-primary mb-1" />
-                <p className="text-primary">06</p>
-                <p className="text-muted-foreground">NOV</p>
-              </div>
-              <div className="flex-1">
-                <p>Prova de Química</p>
-                <p className="text-muted-foreground">Turma A • 14:00</p>
-              </div>
+          {upcomingProvas.length === 0 ? (
+            <p className="text-muted-foreground text-center py-4">
+              Nenhuma prova agendada
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {upcomingProvas.map((prova) => {
+                const { day, month } = formatCalendarDate(prova.data);
+                return (
+                  <div key={prova.id} className="flex gap-4 p-4 rounded-lg border border-border">
+                    <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-lg">
+                      <Calendar className="w-5 h-5 text-primary mb-1" />
+                      <p className="text-primary">{day}</p>
+                      <p className="text-muted-foreground">{month}</p>
+                    </div>
+                    <div className="flex-1">
+                      <p>{prova.titulo}</p>
+                      <p className="text-muted-foreground">
+                        {getTurmaName(prova.turmaId)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-            <div className="flex gap-4 p-4 rounded-lg border border-border">
-              <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-lg">
-                <Calendar className="w-5 h-5 text-primary mb-1" />
-                <p className="text-primary">08</p>
-                <p className="text-muted-foreground">NOV</p>
-              </div>
-              <div className="flex-1">
-                <p>Prova de Física</p>
-                <p className="text-muted-foreground">Turma B • 10:00</p>
-              </div>
-            </div>
-
-            <div className="flex gap-4 p-4 rounded-lg border border-border">
-              <div className="flex flex-col items-center justify-center w-16 h-16 bg-primary/10 rounded-lg">
-                <Calendar className="w-5 h-5 text-primary mb-1" />
-                <p className="text-primary">10</p>
-                <p className="text-muted-foreground">NOV</p>
-              </div>
-              <div className="flex-1">
-                <p>Prova de Geografia</p>
-                <p className="text-muted-foreground">Turma C • 16:00</p>
-              </div>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
