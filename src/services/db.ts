@@ -27,12 +27,16 @@ function writeDB(db: any) { localStorage.setItem(KEY_DB, JSON.stringify(db)); tr
 
 export function calcNota(gabarito: AltGabarito[], respostas: Alt[]): number {
   let acertos = 0;
+  let totalQuestoesValidas = 0;
   for (let i = 0; i < gabarito.length; i++) {
     const gab = gabarito[i]; const r = respostas[i];
     if (gab === 'N') continue;
+    totalQuestoesValidas++;
     if (gab === r) acertos++;
   }
-  return acertos;
+  // Scale to 10 points maximum
+  if (totalQuestoesValidas === 0) return 0;
+  return (acertos / totalQuestoesValidas) * 10;
 }
 
 export const DB = {

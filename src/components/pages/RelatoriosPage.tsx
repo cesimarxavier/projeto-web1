@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,46 +21,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-
-// Mock data para gráficos
-const mediaPorTurma = [
-  { turma: "Turma A", media: 8.2 },
-  { turma: "Turma B", media: 7.5 },
-  { turma: "Turma C", media: 6.8 },
-  { turma: "Turma D", media: 7.9 },
-  { turma: "Turma E", media: 8.5 },
-];
-
-const distribuicaoNotas = [
-  { faixa: "0-2.9", quantidade: 2, color: "hsl(var(--destructive))" },
-  { faixa: "3-5.9", quantidade: 5, color: "hsl(var(--warning))" },
-  { faixa: "6-7.9", quantidade: 8, color: "hsl(var(--info))" },
-  { faixa: "8-10", quantidade: 12, color: "hsl(var(--success))" },
-];
-
-const acertoPorQuestao = [
-  { questao: "Q1", percentual: 85 },
-  { questao: "Q2", percentual: 92 },
-  { questao: "Q3", percentual: 78 },
-  { questao: "Q4", percentual: 65 },
-  { questao: "Q5", percentual: 88 },
-  { questao: "Q6", percentual: 70 },
-  { questao: "Q7", percentual: 95 },
-  { questao: "Q8", percentual: 82 },
-  { questao: "Q9", percentual: 76 },
-  { questao: "Q10", percentual: 90 },
-];
-
-const rankingAlunos = [
-  { posicao: 1, nome: "João Silva", turma: "Turma A", nota: 10.0, percentual: 100 },
-  { posicao: 2, nome: "Maria Santos", turma: "Turma E", nota: 9.5, percentual: 95 },
-  { posicao: 3, nome: "Pedro Costa", turma: "Turma A", nota: 9.2, percentual: 92 },
-  { posicao: 4, nome: "Ana Paula", turma: "Turma B", nota: 9.0, percentual: 90 },
-  { posicao: 5, nome: "Carlos Eduardo", turma: "Turma D", nota: 8.8, percentual: 88 },
-  { posicao: 6, nome: "Juliana Oliveira", turma: "Turma C", nota: 8.5, percentual: 85 },
-  { posicao: 7, nome: "Rafael Mendes", turma: "Turma E", nota: 8.2, percentual: 82 },
-  { posicao: 8, nome: "Beatriz Lima", turma: "Turma B", nota: 8.0, percentual: 80 },
-];
+import { useSCP } from "@/hooks/useSCP";
 
 const chartConfig = {
   media: {
@@ -73,6 +35,136 @@ const chartConfig = {
 };
 
 export function RelatoriosPage() {
+  const { provas, turmas, alunos, totals, listRespostasByProva, getGabaritoByProva } = useSCP();
+
+  const getTurmaName = (turmaId: string) => {
+    return turmas.find(t => t.id === turmaId)?.nome || turmaId;
+  };
+
+  // Get all respostas with notas
+  const allRespostasComNotas = useMemo(() => {
+    return provas.flatMap(prova => {
+      const respostas = listRespostasByProva(prova.id);
+      return respostas.filter(r => typeof r.nota === "number");
+    });
+  }, [provas, listRespostasByProva]);
+
+  // Calculate taxa de aprovação (notas >= 6)
+  const taxaAprovacao = useMemo(() => {
+    if (allRespostasComNotas.length === 0) return 0;
+    const aprovados = allRespostasComNotas.filter(r => (r.nota || 0) >= 6).length;
+    return (aprovados / allRespostasComNotas.length) * 100;
+  }, [allRespostasComNotas]);
+
+  // Calculate alunos avaliados (unique alunos with notas)
+  const alunosAvaliados = useMemo(() => {
+    const alunoIds = new Set(allRespostasComNotas.map(r => r.alunoId));
+    return alunoIds.size;
+  }, [allRespostasComNotas]);
+
+  // Média por turma
+  const mediaPorTurma = useMemo(() => {
+    return totals.mediasPorTurma.map(item => {
+      const turma = turmas.find(t => t.id === item.turmaId);
+      return {
+        turma: turma ? turma.nome : item.turmaId,
+        media: item.media
+      };
+    });
+  }, [totals.mediasPorTurma, turmas]);
+
+  // Distribuição de notas
+  const distribuicaoNotas = useMemo(() => {
+    const faixas = [
+      { faixa: "0-2.9", min: 0, max: 2.9, color: "hsl(var(--destructive))" },
+      { faixa: "3-5.9", min: 3, max: 5.9, color: "hsl(var(--warning))" },
+      { faixa: "6-7.9", min: 6, max: 7.9, color: "hsl(var(--info))" },
+      { faixa: "8-10", min: 8, max: 10, color: "hsl(var(--success))" },
+    ];
+
+    return faixas.map(faixa => ({
+      ...faixa,
+      quantidade: allRespostasComNotas.filter(
+        r => (r.nota || 0) >= faixa.min && (r.nota || 0) <= faixa.max
+      ).length
+    }));
+  }, [allRespostasComNotas]);
+
+  // Acerto por questão (across all provas)
+  const acertoPorQuestao = useMemo(() => {
+    const questaoStats: Record<number, { acertos: number; total: number }> = {};
+
+    provas.forEach(prova => {
+      const gabarito = getGabaritoByProva(prova.id);
+      if (!gabarito) return;
+
+      const respostas = listRespostasByProva(prova.id);
+      respostas.forEach(resp => {
+        resp.respostas.forEach((respostaAluno, idx) => {
+          const gabResp = gabarito.respostas[idx];
+          if (gabResp === "N") return;
+
+          if (!questaoStats[idx]) {
+            questaoStats[idx] = { acertos: 0, total: 0 };
+          }
+
+          questaoStats[idx].total++;
+          if (respostaAluno === gabResp) {
+            questaoStats[idx].acertos++;
+          }
+        });
+      });
+    });
+
+    return Object.entries(questaoStats)
+      .map(([idx, stats]) => ({
+        questao: `Q${parseInt(idx) + 1}`,
+        percentual: stats.total > 0 ? (stats.acertos / stats.total) * 100 : 0
+      }))
+      .sort((a, b) => parseInt(a.questao.slice(1)) - parseInt(b.questao.slice(1)));
+  }, [provas, getGabaritoByProva, listRespostasByProva]);
+
+  // Ranking de alunos
+  const rankingAlunos = useMemo(() => {
+    // Calculate average nota per aluno across all provas
+    const alunoNotas: Record<string, { notas: number[]; alunoId: string }> = {};
+
+    allRespostasComNotas.forEach(resp => {
+      if (!alunoNotas[resp.alunoId]) {
+        alunoNotas[resp.alunoId] = { notas: [], alunoId: resp.alunoId };
+      }
+      if (typeof resp.nota === "number") {
+        alunoNotas[resp.alunoId].notas.push(resp.nota);
+      }
+    });
+
+    const ranking = Object.values(alunoNotas)
+      .map(({ alunoId, notas }) => {
+        const aluno = alunos.find(a => a.id === alunoId);
+        if (!aluno || notas.length === 0) return null;
+
+        const mediaNota = notas.reduce((acc, n) => acc + n, 0) / notas.length;
+        const percentual = (mediaNota / 10) * 100;
+
+        return {
+          alunoId,
+          nome: aluno.nome,
+          turma: getTurmaName(aluno.turmaId),
+          nota: mediaNota,
+          percentual
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => b.nota - a.nota)
+      .slice(0, 8)
+      .map((item, idx) => ({
+        posicao: idx + 1,
+        ...item
+      }));
+
+    return ranking;
+  }, [allRespostasComNotas, alunos, getTurmaName]);
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -129,11 +221,11 @@ export function RelatoriosPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas as turmas</SelectItem>
-                    <SelectItem value="a">Turma A</SelectItem>
-                    <SelectItem value="b">Turma B</SelectItem>
-                    <SelectItem value="c">Turma C</SelectItem>
-                    <SelectItem value="d">Turma D</SelectItem>
-                    <SelectItem value="e">Turma E</SelectItem>
+                    {turmas.map((turma) => (
+                      <SelectItem key={turma.id} value={turma.id}>
+                        {turma.nome}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -169,7 +261,7 @@ export function RelatoriosPage() {
               </div>
               <div>
                 <p className="text-muted-foreground">Média Geral</p>
-                <p className="text-3xl">7.8</p>
+                <p className="text-3xl">{totals.mediaGeral.toFixed(1)}</p>
               </div>
             </div>
           </CardContent>
@@ -183,7 +275,7 @@ export function RelatoriosPage() {
               </div>
               <div>
                 <p className="text-muted-foreground">Taxa de Aprovação</p>
-                <p className="text-3xl">86%</p>
+                <p className="text-3xl">{taxaAprovacao.toFixed(0)}%</p>
               </div>
             </div>
           </CardContent>
@@ -197,7 +289,7 @@ export function RelatoriosPage() {
               </div>
               <div>
                 <p className="text-muted-foreground">Provas Aplicadas</p>
-                <p className="text-3xl">24</p>
+                <p className="text-3xl">{totals.totalProvas}</p>
               </div>
             </div>
           </CardContent>
@@ -211,7 +303,7 @@ export function RelatoriosPage() {
               </div>
               <div>
                 <p className="text-muted-foreground">Alunos Avaliados</p>
-                <p className="text-3xl">156</p>
+                <p className="text-3xl">{alunosAvaliados}</p>
               </div>
             </div>
           </CardContent>
@@ -229,7 +321,12 @@ export function RelatoriosPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            {mediaPorTurma.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum dado disponível
+              </p>
+            ) : (
+              <ChartContainer config={chartConfig} className="h-[300px] w-full">
                 <BarChart data={mediaPorTurma}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                   <XAxis
@@ -247,7 +344,8 @@ export function RelatoriosPage() {
                     radius={[8, 8, 0, 0]}
                   />
                 </BarChart>
-            </ChartContainer>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
 
@@ -259,7 +357,12 @@ export function RelatoriosPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            {distribuicaoNotas.every(d => d.quantidade === 0) ? (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum dado disponível
+              </p>
+            ) : (
+              <ChartContainer config={chartConfig} className="h-[300px] w-full">
                 <PieChart>
                   <Pie
                     data={distribuicaoNotas}
@@ -278,7 +381,8 @@ export function RelatoriosPage() {
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Legend />
                 </PieChart>
-            </ChartContainer>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -292,27 +396,33 @@ export function RelatoriosPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={acertoPorQuestao}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="questao"
-                  className="text-muted-foreground"
-                />
-                <YAxis
-                  domain={[0, 100]}
-                  className="text-muted-foreground"
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar
-                  dataKey="percentual"
-                  fill="hsl(var(--success))"
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {acertoPorQuestao.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              Nenhum dado disponível
+            </p>
+          ) : (
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={acertoPorQuestao}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis
+                    dataKey="questao"
+                    className="text-muted-foreground"
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    className="text-muted-foreground"
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar
+                    dataKey="percentual"
+                    fill="hsl(var(--success))"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          )}
         </CardContent>
       </Card>
 
@@ -328,45 +438,51 @@ export function RelatoriosPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {rankingAlunos.map((aluno) => (
-              <div
-                key={aluno.posicao}
-                className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
-              >
-                {/* Posição */}
+          {rankingAlunos.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              Nenhum dado disponível
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {rankingAlunos.map((aluno) => (
                 <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    aluno.posicao === 1
-                      ? "bg-warning text-warning-foreground"
-                      : aluno.posicao === 2
-                      ? "bg-muted-foreground/20"
-                      : aluno.posicao === 3
-                      ? "bg-warning/30"
-                      : "bg-muted"
-                  }`}
+                  key={aluno.alunoId}
+                  className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors"
                 >
-                  <p className="text-xl">{aluno.posicao}º</p>
-                </div>
+                  {/* Posição */}
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                      aluno.posicao === 1
+                        ? "bg-warning text-warning-foreground"
+                        : aluno.posicao === 2
+                        ? "bg-muted-foreground/20"
+                        : aluno.posicao === 3
+                        ? "bg-warning/30"
+                        : "bg-muted"
+                    }`}
+                  >
+                    <p className="text-xl">{aluno.posicao}º</p>
+                  </div>
 
-                {/* Info do Aluno */}
-                <div className="flex-1">
-                  <p>{aluno.nome}</p>
-                  <p className="text-muted-foreground">
-                    {aluno.turma}
-                  </p>
-                </div>
+                  {/* Info do Aluno */}
+                  <div className="flex-1">
+                    <p>{aluno.nome}</p>
+                    <p className="text-muted-foreground">
+                      {aluno.turma}
+                    </p>
+                  </div>
 
-                {/* Nota e Percentual */}
-                <div className="text-right">
-                  <p className="text-2xl">{aluno.nota.toFixed(1)}</p>
-                  <Badge variant="default">
-                    {aluno.percentual}%
-                  </Badge>
+                  {/* Nota e Percentual */}
+                  <div className="text-right">
+                    <p className="text-2xl">{aluno.nota.toFixed(1)}</p>
+                    <Badge variant="default">
+                      {aluno.percentual.toFixed(0)}%
+                    </Badge>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -1,10 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  RefreshCw,
   CheckCircle,
   XCircle,
   TrendingUp,
@@ -127,16 +125,19 @@ export function RespostasCorrecaoPage() {
       });
 
       const acertos = respostasDetalhadas.filter(r => r.correta).length;
-      const totalQuestoes = selectedProva.qtdQuestoes;
-      const percentualAcertos = respostasAluno.filter(r => r !== "").length > 0
-        ? (acertos / totalQuestoes) * 100
+      // Count only valid questions (excluding 'N' from gabarito)
+      const totalQuestoesValidas = gabarito.filter(g => g !== "N").length;
+      const percentualAcertos = respostasAluno.filter(r => r !== "").length > 0 && totalQuestoesValidas > 0
+        ? (acertos / totalQuestoesValidas) * 100
         : 0;
 
-      // Use nota from DB if available, otherwise calculate
+      // Use nota from DB if available, otherwise calculate (scaled to 10)
       const existingResposta = listRespostasByProva(selectedProvaId).find(r => r.alunoId === aluno.id);
       const nota = existingResposta?.nota !== undefined
         ? existingResposta.nota
-        : (acertos / totalQuestoes) * 10;
+        : totalQuestoesValidas > 0
+          ? (acertos / totalQuestoesValidas) * 10
+          : 0;
 
       return {
         aluno,
