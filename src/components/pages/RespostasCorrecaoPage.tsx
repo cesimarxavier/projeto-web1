@@ -178,7 +178,7 @@ export function RespostasCorrecaoPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {provas.length === 0 ? (
-                      <SelectItem value="" disabled>Nenhuma prova cadastrada</SelectItem>
+                      <SelectItem value="__empty__" disabled>Nenhuma prova cadastrada</SelectItem>
                     ) : (
                       provas.map((prova) => (
                         <SelectItem key={prova.id} value={prova.id}>

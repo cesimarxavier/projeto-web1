@@ -206,7 +206,7 @@ export function ProvasPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {turmas.length === 0 ? (
-                      <SelectItem value="" disabled>Nenhuma turma cadastrada</SelectItem>
+                      <SelectItem value="__empty__" disabled>Nenhuma turma cadastrada</SelectItem>
                     ) : (
                       turmas.map((turma) => (
                         <SelectItem key={turma.id} value={turma.id}>
