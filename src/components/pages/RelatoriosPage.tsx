@@ -1,13 +1,13 @@
-import { Button } from "../ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileDown, FileText, Trophy, TrendingUp, Target, Award } from "lucide-react";
-import { Badge } from "../ui/badge";
+import { Badge } from "@/components/ui/badge";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "../ui/chart";
+} from "@/components/ui/chart";
 import {
   BarChart,
   Bar,
@@ -220,7 +220,6 @@ export function RelatoriosPage() {
 
       {/* Gráficos - Primeira Linha */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Média por Turma */}
         <Card>
           <CardHeader>
             <CardTitle>Média por Turma</CardTitle>
@@ -230,30 +229,27 @@ export function RelatoriosPage() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={mediaPorTurma}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis 
-                    dataKey="turma" 
+                  <XAxis
+                    dataKey="turma"
                     className="text-muted-foreground"
                   />
-                  <YAxis 
+                  <YAxis
                     domain={[0, 10]}
                     className="text-muted-foreground"
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar 
-                    dataKey="media" 
-                    fill="hsl(var(--primary))" 
+                  <Bar
+                    dataKey="media"
+                    fill="hsl(var(--primary))"
                     radius={[8, 8, 0, 0]}
                   />
                 </BarChart>
-              </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
 
-        {/* Distribuição de Notas */}
         <Card>
           <CardHeader>
             <CardTitle>Distribuição de Notas</CardTitle>
@@ -263,7 +259,6 @@ export function RelatoriosPage() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={distribuicaoNotas}
@@ -282,7 +277,6 @@ export function RelatoriosPage() {
                   <ChartTooltip content={<ChartTooltipContent />} />
                   <Legend />
                 </PieChart>
-              </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
         </Card>
@@ -301,18 +295,18 @@ export function RelatoriosPage() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={acertoPorQuestao}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis 
-                  dataKey="questao" 
+                <XAxis
+                  dataKey="questao"
                   className="text-muted-foreground"
                 />
-                <YAxis 
+                <YAxis
                   domain={[0, 100]}
                   className="text-muted-foreground"
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  dataKey="percentual" 
-                  fill="hsl(var(--success))" 
+                <Bar
+                  dataKey="percentual"
+                  fill="hsl(var(--success))"
                   radius={[8, 8, 0, 0]}
                 />
               </BarChart>
