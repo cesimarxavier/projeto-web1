@@ -32,4 +32,4 @@
 
 **Link para o repositório (público):** [https://github.com/cesimarxavier/projeto-web1](https://github.com/cesimarxavier/projeto-web1)
 
-**Link para o projeto online (Vercel) ** [https://projeto-web1-zeta.vercel.app/dashboard](https://projeto-web1-zeta.vercel.app/dashboard)
+**Link para o projeto online (Vercel)** [https://projeto-web1-zeta.vercel.app/dashboard](https://projeto-web1-zeta.vercel.app/dashboard)
