@@ -22,9 +22,20 @@
 
 ## 💻 Projeto
 
-**Título do Sistema:** Sistema de Correção de Provas  
-**Descrição:** Sistema de suporte ao professor para ajudar a criar, manter, avaliar avaliações teóricas.
-**Objetivo:** Desenvolver uma aplicação web funcional utilizando HTML, CSS e JavaScript (com possível uso de frameworks como React, Angular ou Vue), seguindo princípios de arquitetura MVC e REST.
+**Descrição:**
+
+Trata-se de um sistema de apoio ao professor para administração completa de avaliações teóricas — desde a criação, aplicação até a correção. Embora faça parte de um escopo mais amplo já em andamento, esta versão se concentrará exclusivamente nos requisitos da aplicação web, deixando de lado funcionalidades mais especializadas.
+
+**Objetivo:**
+Construir uma aplicação web funcional com base nas tecnologias web padrão (HTML, CSS e JavaScript ou um framework moderno como React, Angular ou Vue.js), organizada segundo os princípios da arquitetura MVC (Model-View-Controller) e comunicação via API REST.
+
+**Escopo:**
+
+- Nesta versão contamos com a interface para professor para criar provas, configurar gabaritos e lançar respostas.
+
+
+**Benefício esperado:**
+Maior eficiência e transparência na correção de avaliações, economia de tempo para professores e melhor visibilidade da performance de turmas/questões.
 
 ---
 
